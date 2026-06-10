@@ -9,7 +9,31 @@
 
 static const char *TAG = "MAIN_TEST";
 
+#include "include/led_info.h"
+
 void app_main(void)
+{
+    led_info_init();
+
+    led_info_set_wifi(
+        LED_MODE_BLINK_SLOW
+    );
+
+    led_info_set_mqtt(
+        LED_MODE_BLINK_FAST
+    );
+
+    while (1) {
+
+        led_info_task();
+
+        vTaskDelay(
+            pdMS_TO_TICKS(10)
+        );
+    }
+}
+
+/*void app_main(void)
 {
     ESP_LOGI(TAG, "Iniciando teste de bancada do BMP180...");
 
@@ -59,4 +83,4 @@ void app_main(void)
        
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
-}
+}*/
