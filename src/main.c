@@ -7,11 +7,91 @@
 
 #include "include/bmp180.h"
 
-static const char *TAG = "MAIN_TEST";
-
 #include "include/led_info.h"
 
+
+#include "include/wifi_manager.h"
+
+static const char *TAG = "MAIN";
+
 void app_main(void)
+{
+    ESP_LOGI(TAG, "Starting Wi-Fi test");
+
+    esp_err_t err = wifi_manager_init(
+    "Wokwi-GUEST",  
+    ""
+);
+
+    if (err != ESP_OK) {
+        ESP_LOGE(
+            TAG,
+            "Wi-Fi initialization failed"
+        );
+
+        return;
+    }
+
+    while (1) {
+
+        wifi_state_t state =
+            wifi_manager_get_state();
+
+        switch (state) {
+
+        case WIFI_STATE_DISCONNECTED:
+
+            ESP_LOGW(
+                TAG,
+                "Wi-Fi: DISCONNECTED"
+            );
+
+            break;
+
+        case WIFI_STATE_CONNECTING:
+
+            ESP_LOGI(
+                TAG,
+                "Wi-Fi: CONNECTING"
+            );
+
+            break;
+
+        case WIFI_STATE_CONNECTED:
+
+            ESP_LOGI(
+                TAG,
+                "Wi-Fi: CONNECTED"
+            );
+
+            break;
+
+        case WIFI_STATE_GOT_IP:
+
+            ESP_LOGI(
+                TAG,
+                "Wi-Fi: GOT_IP"
+            );
+
+            break;
+
+        default:
+
+            ESP_LOGW(
+                TAG,
+                "Wi-Fi: UNKNOWN"
+            );
+
+            break;
+        }
+
+        vTaskDelay(
+            pdMS_TO_TICKS(2000)
+        );
+    }
+}
+
+/*void app_main(void)
 {
     led_info_init();
 
@@ -31,7 +111,7 @@ void app_main(void)
             pdMS_TO_TICKS(10)
         );
     }
-}
+}*/
 
 /*void app_main(void)
 {
