@@ -6,15 +6,82 @@
 #include "esp_log.h"
 
 #include "include/bmp180.h"
-
 #include "include/led_info.h"
-
-
 #include "include/wifi_manager.h"
+#include "include/mqtt_manager.h"
 
 static const char *TAG = "MAIN";
 
+#define MQTT_BROKER_URI "mqtt://192.168.1.137:1883"
+
+/* Simple wait loop for connection */
+static void wait_wifi_connected(void)
+{
+    while (!wifi_manager_is_connected()) {
+        ESP_LOGI(TAG, "Waiting Wi-Fi...");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+static void wait_mqtt_connected(void)
+{
+    while (!mqtt_manager_is_connected()) {
+        ESP_LOGI(TAG, "Waiting MQTT...");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
 void app_main(void)
+{
+    ESP_LOGI(TAG, "System starting...");
+
+    /* ---------------- Wi-Fi ---------------- */
+    ESP_LOGI(TAG, "Initializing Wi-Fi...");
+    wifi_manager_init("Wokwi-GUEST", "");
+
+    wait_wifi_connected();
+    ESP_LOGI(TAG, "Wi-Fi connected!");
+
+    /* ---------------- MQTT ---------------- */
+    ESP_LOGI(TAG, "Initializing MQTT...");
+    mqtt_manager_init(MQTT_BROKER_URI);
+
+    wait_mqtt_connected();
+    ESP_LOGI(TAG, "MQTT connected!");
+
+    /* ---------------- Sensor ---------------- */
+    ESP_LOGI(TAG, "Initializing BMP180...");
+    bmp180_init();
+
+    float temperature = 0.0f;
+
+    /* ---------------- Main loop ---------------- */
+    while (1) {
+
+        if (bmp180_read_temperature(&temperature) == ESP_OK) {
+
+            char payload[64];
+            snprintf(payload, sizeof(payload),
+                     "{\"temperature\": %.2f}", temperature);
+
+            mqtt_manager_publish(
+                "industrial/node01/temperature",
+                payload,
+                0,
+                0
+            );
+
+            ESP_LOGI(TAG, "Published: %s", payload);
+        }
+        else {
+            ESP_LOGE(TAG, "Sensor read failed");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+/*void app_main(void)
 {
     ESP_LOGI(TAG, "Starting Wi-Fi test");
 
@@ -89,7 +156,7 @@ void app_main(void)
             pdMS_TO_TICKS(2000)
         );
     }
-}
+}*/
 
 /*void app_main(void)
 {
