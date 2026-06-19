@@ -12,7 +12,9 @@
 
 static const char *TAG = "MAIN";
 
-#define MQTT_BROKER_URI "mqtt://192.168.1.137:1883"
+//#define MQTT_BROKER_URI "mqtt://192.168.1.137:1883"
+#define MQTT_BROKER_URI "mqtt://broker.hivemq.com:1883"
+
 
 /* Simple wait loop for connection */
 static void wait_wifi_connected(void)
@@ -65,7 +67,7 @@ void app_main(void)
                      "{\"temperature\": %.2f}", temperature);
 
             mqtt_manager_publish(
-                "industrial/node01/temperature",
+                "jordan/willian/99/industrial/node01/temperature",
                 payload,
                 0,
                 0
